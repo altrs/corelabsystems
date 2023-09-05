@@ -4,7 +4,6 @@ https://stackoverflow.com/questions/37240287/can-i-create-multiple-canvas-elemen
 https://p5js.org/reference/#/p5.Vector/normalize
 http://www.kfish.org/boids/pseudocode.html
 https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp06_agents/NOC_6_09_Flocking
-https://codepen.io/PorridgeBear/pen/oYKwZq
 -->
 
 <!DOCTYPE html>
@@ -36,8 +35,8 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
     #popup{
       width: 200px;
       position: absolute;
-      left: 10%;
-      top: 30%;
+      left: 5%;
+      top: 5%;
       background-color: white;
       border: 1px solid;
       padding: 10px;
@@ -57,7 +56,7 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
   </div>
 
   <div id="console">
-    <p></p>
+    <p>I don't know where you are.</p>
   </div>
 
   <script type="text/javascript">
@@ -69,7 +68,6 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
     sun.addEventListener('click', function() {
       popup.style.display = 'block';
     });
-
 
     //div
     var earthspace;
@@ -212,12 +210,7 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
 
         push();
         translate(this.position.x, this.position.y);
-        rotate(theta);
-        beginShape();
-        vertex(0, -this.r*2);
-        vertex(-this.r, this.r*2);
-        vertex(this.r, this.r*2);
-        endShape(CLOSE);
+        rect(0,0,-this.r*2);
         pop();
       }
     }
@@ -226,19 +219,20 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
       const mouseX = canvasMouseX;
       const mouseY = canvasMouseY;
       
-        if (mouseX >= 0 && mouseX < earthspace.width && mouseY >= 0 && mouseY < earthspace.height) {
-          updateBufferInfo("You are in Earthspace.");
-        }else if (mouseX >= 450 && mouseX < 850 && mouseY >= 0 && mouseY < cyberspace.height) {
-          updateBufferInfo("You are in Cyberspace.");
-        }else{
-          updateBufferInfo("I don't know where you are");
-        }
-      }
+      if (mouseX >= 0 && mouseX < earthspace.width && mouseY >= 0 && mouseY < earthspace.height) {
+        updateBufferInfo("You are in Earthspace.");
+      }else if (mouseX >= 450 && mouseX < 850 && mouseY >= 0 && mouseY < cyberspace.height) {
+        updateBufferInfo("You are in Cyberspace.");
+      } else {updateBufferInfo("I don't know where you are");}
+    }
 
     let bufferInfoDiv = document.getElementById('console');
+
     function updateBufferInfo(message) {
-      const paragraph = bufferInfoDiv.querySelector('p');
-      paragraph.textContent = message;
+        const paragraph = bufferInfoDiv.querySelector('p');
+        p = document.createElement("p");
+        p.textContent = message;
+        bufferInfoDiv.append(p);
     }
 
   </script>
