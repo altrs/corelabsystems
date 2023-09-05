@@ -33,12 +33,26 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
       margin: 10px;
     }
 
+    #popup{
+      width: 200px;
+      position: absolute;
+      left: 10%;
+      top: 30%;
+      background-color: white;
+      border: 1px solid;
+      padding: 10px;
+      display: none;
+    }
+
   </style>
 </head>
 <body>
 
   <div id="container">
-    <img src="sun.gif"/>
+    <img id="sun" src="sun.gif"/>
+      <div id="popup">
+        On Earth, people move towards their centers of interest; on Internet, we are at the center and the space is created around us.
+      </div>
     <canvas></canvas>
   </div>
 
@@ -47,6 +61,15 @@ https://codepen.io/PorridgeBear/pen/oYKwZq
   </div>
 
   <script type="text/javascript">
+
+    //poup
+    let popup = document.getElementById('popup');
+    let sun = document.getElementById('sun');
+
+    sun.addEventListener('click', function() {
+      popup.style.display = 'block';
+    });
+
 
     //div
     var earthspace;
