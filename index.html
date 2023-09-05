@@ -1,3 +1,12 @@
+<!--
+REFERENCES:
+https://stackoverflow.com/questions/37240287/can-i-create-multiple-canvas-elements-on-same-page-using-p5js
+https://p5js.org/reference/#/p5.Vector/normalize
+http://www.kfish.org/boids/pseudocode.html
+https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp06_agents/NOC_6_09_Flocking
+https://codepen.io/PorridgeBear/pen/oYKwZq
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,12 +17,22 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
   <title>cyberspace</title>
   <style>
+
     #container {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh; /* Make it take the full viewport height */
+      height: 100vh;
+      position: relative;
     }
+
+    #console {
+      position: absolute;
+      bottom: 0px;
+      right: 30px;
+      margin: 10px;
+    }
+
   </style>
 </head>
 <body>
@@ -23,16 +42,26 @@
     <canvas></canvas>
   </div>
 
+  <div id="console">
+    <p>Welcom user 35817</p>
+  </div>
+
   <script type="text/javascript">
 
-    //div vars
+    //div
     var earthspace;
     var cyberspace;
+    let canvasMouseX;
+    let canvasMouseY;
 
-    //earthspace vars
+    //earthspace
     let stationaryIconPosition;
     let movingIconPosition;
     let isMoving = true;
+
+    //cyberspace
+    var numBoids = 10;
+    var boids = [];
 
     function setup() {
         const canvas = createCanvas(850, 400);
@@ -40,43 +69,49 @@
         earthspace = createGraphics(400, 400);
         cyberspace = createGraphics(400, 400);
 
-        //earthspace icons
+        //earthspace
         stationaryIconPosition = createVector(random(50, 350), random(50, 350));
         movingIconPosition = createVector(random(50, 350), random(50, 350));
+
+        //cyberspace
+        for (var i = 0; i < numBoids; i++) {
+          boids.push(new Boid(random(450, 850), random(450, 850)));
+        }
     }
 
     function draw() {
+        canvasMouseX = mouseX;
+        canvasMouseY = mouseY;
+        console.log("X: " + mouseX + " Y: " + mouseY);
+
         drawLeftBuffer();
         drawRightBuffer();
         image(earthspace, 0, 0);
         image(cyberspace, 450, 0);
+
+        checkMouse();
     }
 
+    //EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE
+    //EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE EARTHSPACE
+
     function drawLeftBuffer() {
-        earthspace.fill(0, 0, 0);
-        earthspace.textSize(32);
         earthspace.noFill();
         earthspace.rect(0, 0, earthspace.width, earthspace.height);
-
         earthspace.ellipse(stationaryIconPosition.x, stationaryIconPosition.y, 30, 30);
+        earthspace.ellipse(movingIconPosition.x, movingIconPosition.y, 20, 20);
 
         if (isMoving) {
-          // Calculate the direction vector from the moving icon to the stationary icon
           const direction = p5.Vector.sub(stationaryIconPosition, movingIconPosition);
           const distance = direction.mag(); // Calculate the distance between icons
-          
-          // Check if the distance is greater than a threshold (e.g., 2 pixels)
-          if (distance > 2) {
-            direction.normalize(); // Normalize the vector to get a unit vector
-          
-            // Update the position of the moving ellipse using the direction vector
-            movingIconPosition.add(direction.mult(3)); // Adjust the speed of movement
 
+          if (distance > 2) {
+            direction.normalize();
+            movingIconPosition.add(direction.mult(3));
             movingIconPosition.x = constrain(movingIconPosition.x, 0, earthspace.width);
             movingIconPosition.y = constrain(movingIconPosition.y, 0, earthspace.height);
-          }else {isMoving = false;}
+          } else {isMoving = false;}
           
-          earthspace.ellipse(movingIconPosition.x, movingIconPosition.y, 20, 20); // Adjust ellipse size
         }
     }
 
@@ -85,24 +120,105 @@
       isMoving = true;
     }
 
+    //CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE
+    //CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE CYBERSPACE
+
     function drawRightBuffer() {
-        cyberspace.fill(0, 0, 0);
         cyberspace.textSize(32);
         cyberspace.noFill();
         cyberspace.strokeWeight(4);
         cyberspace.rect(0, 0, cyberspace.width, cyberspace.height);
+
+        for (var i = 0; i < boids.length; i++) {
+          var b = boids[i];
+          b.draw();
+
+          var v1 = ruleFlyToMouse(i, b);
+          var v2 = ruleFlyCloseToOthers(i, b);
+          var v3 = ruleFlyAtSimilarVelocityToOthers(i, b);
+
+          b.velocity.add(v1);
+          b.velocity.add(v2);
+          b.velocity.add(v3);
+
+          b.position.add(b.velocity);
+        }
     }
 
+    ruleFlyToMouse = function(bi, boid) {
+      var bipc = createVector(mouseX, mouseY);
+      var v = p5.Vector.sub(bipc, boid.position);
+      v.div(100);
+      return v;
+    }
+
+    ruleFlyCloseToOthers = function(bi, boid) {
+      var c = createVector();
+      for (var i = 0; i < boids.length; i++) {
+        if (bi != i) {
+          var b = boids[i];
+          var a = p5.Vector.sub(b.position, boid.position);
+          if (a.mag() < boid.diameter) {c.sub(a);}
+        }
+      }
+      return c;
+    }
+
+    ruleFlyAtSimilarVelocityToOthers = function(bi, boid) {
+      var pv = createVector();
+      for (var i = 0; i < boids.length; i++) {
+        if (bi != i) {pv.add(boids[i].velocity);}
+      }
+
+      pv.div(boids.length - 1);
+      var v = p5.Vector.sub(pv, boid.velocity);
+      v.div(8);
+      return v;
+    }
+
+    var Boid = function(x, y) {
+
+      this.diameter = 15;
+      this.position = createVector(x, y);
+      this.velocity = createVector(0);
+      this.r = 3;
+
+      this.draw = function() {
+        this.velocity.limit(3);
+        var theta = this.velocity.heading() + radians(90);
+
+        push();
+        translate(this.position.x, this.position.y);
+        rotate(theta);
+        beginShape();
+        vertex(0, -this.r*2);
+        vertex(-this.r, this.r*2);
+        vertex(this.r, this.r*2);
+        endShape(CLOSE);
+        pop();
+      }
+    }
+
+    function checkMouse() {
+      const mouseX = canvasMouseX;
+      const mouseY = canvasMouseY;
+      
+        if (mouseX >= 0 && mouseX < earthspace.width && mouseY >= 0 && mouseY < earthspace.height) {
+          updateBufferInfo("You are in Earthspace.");
+        }else if (mouseX >= 450 && mouseX < 850 && mouseY >= 0 && mouseY < cyberspace.height) {
+          updateBufferInfo("You are in Cyberspace.");
+        }else{
+          updateBufferInfo("I don't know where you are");
+        }
+      }
+
+    let bufferInfoDiv = document.getElementById('console');
+    function updateBufferInfo(message) {
+      const paragraph = bufferInfoDiv.querySelector('p');
+      paragraph.textContent = message;
+    }
 
   </script>
 
 </body>
 </html>
-
-
-
-<!--
-REFERENCES:
-https://stackoverflow.com/questions/37240287/can-i-create-multiple-canvas-elements-on-same-page-using-p5js
-https://p5js.org/reference/#/p5.Vector/normalize
--->
