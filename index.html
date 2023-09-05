@@ -1,22 +1,108 @@
 <!DOCTYPE html>
-<html land="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
   <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
   <title>cyberspace</title>
   <style>
-    @media (max-width: 800px) {
-      body{
-        font-size: 12px;
-      }
+    #container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh; /* Make it take the full viewport height */
     }
   </style>
 </head>
 <body>
 
+  <div id="container">
+    <img src="http://gifgifs.com//animations/nature/sun/Sun_rays.gif" border=0 alt="http://gifgifs.com"/>
+    <canvas></canvas>
+  </div>
 
+  <script type="text/javascript">
+
+    //div vars
+    var earthspace;
+    var cyberspace;
+
+    //earthspace vars
+    let stationaryIconPosition;
+    let movingIconPosition;
+    let isMoving = true;
+
+    function setup() {
+        const canvas = createCanvas(850, 400);
+        canvas.parent('container');
+        earthspace = createGraphics(400, 400);
+        cyberspace = createGraphics(400, 400);
+
+        //earthspace icons
+        stationaryIconPosition = createVector(random(50, 350), random(50, 350));
+        movingIconPosition = createVector(random(50, 350), random(50, 350));
+    }
+
+    function draw() {
+        drawLeftBuffer();
+        drawRightBuffer();
+        image(earthspace, 0, 0);
+        image(cyberspace, 450, 0);
+    }
+
+    function drawLeftBuffer() {
+        earthspace.fill(0, 0, 0);
+        earthspace.textSize(32);
+        earthspace.noFill();
+        earthspace.rect(0, 0, earthspace.width, earthspace.height);
+
+        earthspace.ellipse(stationaryIconPosition.x, stationaryIconPosition.y, 30, 30);
+
+        if (isMoving) {
+          // Calculate the direction vector from the moving icon to the stationary icon
+          const direction = p5.Vector.sub(stationaryIconPosition, movingIconPosition);
+          const distance = direction.mag(); // Calculate the distance between icons
+          
+          // Check if the distance is greater than a threshold (e.g., 2 pixels)
+          if (distance > 2) {
+            direction.normalize(); // Normalize the vector to get a unit vector
+          
+            // Update the position of the moving ellipse using the direction vector
+            movingIconPosition.add(direction.mult(3)); // Adjust the speed of movement
+
+            movingIconPosition.x = constrain(movingIconPosition.x, 0, earthspace.width);
+            movingIconPosition.y = constrain(movingIconPosition.y, 0, earthspace.height);
+          }else {isMoving = false;}
+          
+          earthspace.ellipse(movingIconPosition.x, movingIconPosition.y, 20, 20); // Adjust ellipse size
+        }
+    }
+
+    function mouseClicked() {
+      stationaryIconPosition = createVector(random(50, 350), random(50, 350));
+      isMoving = true;
+    }
+
+    function drawRightBuffer() {
+        cyberspace.fill(0, 0, 0);
+        cyberspace.textSize(32);
+        cyberspace.noFill();
+        cyberspace.strokeWeight(4);
+        cyberspace.rect(0, 0, cyberspace.width, cyberspace.height);
+    }
+
+
+  </script>
 
 </body>
 </html>
+
+
+
+<!--
+REFERENCES:
+https://stackoverflow.com/questions/37240287/can-i-create-multiple-canvas-elements-on-same-page-using-p5js
+https://p5js.org/reference/#/p5.Vector/normalize
+-->
